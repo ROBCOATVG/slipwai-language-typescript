@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from ... import registry as protocol
 from ...assets import LANGUAGE_ROOT, asset_tree
 from ...selection import Selection
 from ...services import App
@@ -334,3 +335,15 @@ set -eu
 if [ ! -d node_modules ]; then npm ci; fi
 {verify_lines}"""
     return files
+
+
+LANGUAGE = protocol.Language(
+    (protocol.Family("typescript"),),
+    (protocol.Backend("typescript", "typescript", {
+        protocol.SERVICE_FILES: service_files,
+        protocol.NAME_SERVICE: name_service,
+        protocol.REPOSITORY_FILES: repository_files,
+        protocol.READY_PATH: "/ready",
+        protocol.HEALTH_BODY: '{"status":"ok"}',
+    }),),
+)
