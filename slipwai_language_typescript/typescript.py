@@ -108,8 +108,8 @@ export default defineConfig({{
 # What each feature adds to the service manifest, keyed by feature and applied in this order — the scripts
 # object keeps its insertion order, so the order here is the order a generated package.json reads in.
 #
-# One table rather than a branch per feature, and kept in step with `PACKAGE_EDITS` in
-# assets/backing-services/prune.py, which removes exactly these again when the feature is pruned; the
+# One table rather than a branch per feature, and kept in step with `package_edits` in the family's
+# `typescript_prune_rows.py`, which the pruner reads to remove exactly these again; the
 # factory's test suite asserts the two agree.
 PACKAGE_ADDITIONS: dict[str, dict[str, dict[str, str]]] = {
     "postgres": {
