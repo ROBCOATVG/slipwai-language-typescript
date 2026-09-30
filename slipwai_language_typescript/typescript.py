@@ -15,6 +15,7 @@ from ..flag_route import wire_entry
 from ..flags import flag_reader
 from ..openapi import published_document
 from ..shared_packages import WORKSPACE
+from . import typescript_layout as layout
 
 
 def service_files(event: bool, selection: Selection, target: str = "none") -> dict[str, str]:
@@ -345,5 +346,5 @@ LANGUAGE = protocol.Language(
         protocol.REPOSITORY_FILES: repository_files,
         protocol.READY_PATH: "/ready",
         protocol.HEALTH_BODY: '{"status":"ok"}',
-    }),),
-)
+        **layout.ANSWERS,
+    }),))
