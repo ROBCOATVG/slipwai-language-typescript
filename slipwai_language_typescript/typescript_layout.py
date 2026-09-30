@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from ... import registry as protocol
+from ..entry_stores import EntryStore, marked
 from ..flag_route import EntryWiring
 from ..flags import FlagReader
 
@@ -116,10 +117,101 @@ WIRING = {
     ),
 }
 
+# What this backend's entry point writes for each event-store answer: `entry_stores.py` says what the fields
+# mean, and `composition.wire_store`, which reads it, the three rules every string here follows.
+TYPESCRIPT_MEMORY_IMPORT = (
+    "import { createInMemoryEventStore } from './adapters/driven/event-store-memory.js';\n"
+)
+# Beside the store imports because Biome sorts the whole block, and its path falls between adapter and port.
+TYPESCRIPT_APP_IMPORT = "import { buildApp, readiness } from './adapters/driving/http/app.js';\n"
+TYPESCRIPT_PORT_IMPORT = (
+    "import type { EventStore } from './application/ports/events.js';\nimport type { Config } from './config.js';\n"
+)
+TYPESCRIPT_OPEN_HEAD = """// The event store this project answered the event-store question with, opened once and handed to
+// whatever needs it. Nothing else in this service constructs one.
+//
+// It takes the checked environment rather than reading `process.env`: `@fastify/env` populates
+// `app.config` while the app boots, so `readiness` calls this once from inside `after`, which is where
+// that exists — and `src/config.ts` stays the one place this service's variables are checked.
+//
+// The marked block is the answer; delete it — which is what `./init --event-store memory` does — and the
+// in-memory store below is what is left. Both states are valid at once, which is what a prune needs,
+// because pruning only ever subtracts.
+function openEventStore(config: Config): EventStore {
+  let store: EventStore | undefined;
+"""
+TYPESCRIPT_OR_MEMORY = """  store ??= createInMemoryEventStore();
+  return store;
+}
+"""
+
+STORE = EntryStore(
+    entry="src/main.ts",
+    imports={
+        # No event-store axis, and the adapter import still has to land: without this row `tsc` saw
+        # neither `buildApp` nor `readiness`.
+        "none": TYPESCRIPT_APP_IMPORT,
+        None: TYPESCRIPT_MEMORY_IMPORT + TYPESCRIPT_APP_IMPORT,
+        "sqlite": TYPESCRIPT_MEMORY_IMPORT
+        + marked(
+            "import { openSqliteEventStore } from './adapters/driven/event-store-sqlite.js';",
+        )
+        + TYPESCRIPT_APP_IMPORT
+        + TYPESCRIPT_PORT_IMPORT,
+        "postgres": marked("import { Pool } from 'pg';")
+        + TYPESCRIPT_MEMORY_IMPORT
+        + marked(
+            "import { createPostgresEventStore } from "
+            "'./adapters/driven/event-store-postgres/index.js';",
+        )
+        + TYPESCRIPT_APP_IMPORT
+        + TYPESCRIPT_PORT_IMPORT,
+    },
+    open={
+        None: (
+            "// The event store this project answered the event-store question with, opened once and\n"
+            "// handed to whatever needs it. Nothing else in this service constructs one — and it is\n"
+            "// `readiness` that calls this, once, as the app boots.\n"
+            "function openEventStore() {\n"
+            "  return createInMemoryEventStore();\n"
+            "}\n"
+        ),
+        "sqlite": TYPESCRIPT_OPEN_HEAD
+        + marked(
+            "  store = openSqliteEventStore(config.EVENT_STORE_PATH);",
+            indent="  ",
+        )
+        + TYPESCRIPT_OR_MEMORY,
+        "postgres": TYPESCRIPT_OPEN_HEAD
+        + marked(
+            "  // `pg` connects lazily, so this opens no socket while the app is booting: an\n"
+            "  // unreachable database shows up as `/ready` answering 503, which is what it is.\n"
+            "  const pool = new Pool({ connectionString: config.DATABASE_URL });\n"
+            "  // A pool emits `error` when an *idle* client's connection dies — the database\n"
+            "  // restarted, a failover, somebody stopped the container. That is an EventEmitter\n"
+            "  // error, so leaving it unhandled takes this process down with it, and a service that\n"
+            "  // dies when its database blinks is one a platform crash-loops instead of taking out\n"
+            "  // of the pool for a moment. The pool discards that client and opens another by\n"
+            "  // itself; all this owes is somewhere to say so, and `/ready` reports the rest.\n"
+            "  pool.on('error', (failure) => {\n"
+            "    const line = { level: 50, msg: 'the event store connection failed', "
+            "err: String(failure) };\n"
+            "    process.stderr.write(`${JSON.stringify(line)}\\n`);\n"
+            "  });\n"
+            "  store = createPostgresEventStore(pool);",
+            indent="  ",
+        )
+        + TYPESCRIPT_OR_MEMORY,
+    },
+    argument="openEventStore",
+)
+
+
 ANSWERS: dict[protocol.Member[Any], object] = {
     protocol.WRITE_SIDE_FILES: WRITE_SIDE,
     protocol.READ_SIDE_FILES: READ_SIDE,
     protocol.FLAG_READER: READER,
     protocol.ENTRY_WIRING: WIRING,
     protocol.FLAG_RESOURCE: {},
+    protocol.ENTRY_STORE: STORE,
 }
