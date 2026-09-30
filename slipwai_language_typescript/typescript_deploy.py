@@ -37,4 +37,5 @@ BACKEND: dict[protocol.Member[Any], object] = {
         ),
         "packs_workspace": True,
     },
+    protocol.MIGRATIONS_IN_PRODUCTION: {"command": ["npm", "--workspace", APP, "run", "migrate"]},
 }
