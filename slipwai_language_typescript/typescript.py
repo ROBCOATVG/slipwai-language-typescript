@@ -15,7 +15,7 @@ from ..flag_route import wire_entry
 from ..flags import flag_reader
 from ..openapi import published_document
 from ..shared_packages import WORKSPACE
-from . import typescript_deploy, typescript_layout, typescript_toolchain
+from . import typescript_deploy, typescript_layout, typescript_prune_rows, typescript_toolchain
 
 
 def service_files(event: bool, selection: Selection, target: str = "none") -> dict[str, str]:
@@ -108,8 +108,8 @@ export default defineConfig({{
 # What each feature adds to the service manifest, keyed by feature and applied in this order — the scripts
 # object keeps its insertion order, so the order here is the order a generated package.json reads in.
 #
-# One table rather than a branch per feature, and kept in step with `PACKAGE_EDITS` in
-# assets/backing-services/prune.py, which removes exactly these again when the feature is pruned; the
+# One table rather than a branch per feature, and kept in step with `package_edits` in the family's
+# `typescript_prune_rows.py`, which the pruner reads to remove exactly these again; the
 # factory's test suite asserts the two agree.
 PACKAGE_ADDITIONS: dict[str, dict[str, dict[str, str]]] = {
     "postgres": {
@@ -339,7 +339,7 @@ if [ ! -d node_modules ]; then npm ci; fi
 
 
 LANGUAGE = protocol.Language(
-    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS),),
+    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS | {protocol.PRUNE_ROWS: typescript_prune_rows.PRUNE_ROWS}),),
     (protocol.Backend("typescript", "typescript", typescript_toolchain.BACKEND | typescript_deploy.BACKEND | {
         protocol.SERVICE_FILES: service_files,
         protocol.NAME_SERVICE: name_service,
