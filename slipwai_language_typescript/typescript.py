@@ -39,7 +39,7 @@ def service_files(event: bool, selection: Selection, target: str = "none") -> di
     wire_store(files, selection, "typescript")
     # The published contract, committed beside the service: which of the two shapes it takes is the same
     # condition that decides whether `/api/flags` is a route at all.
-    files.update(published_document(selection, target))
+    files.update(published_document(selection, target, "typescript", "fastify"))
     files["package.json"] = service_package_json(files["package.json"], selection)
     return files
 
@@ -339,7 +339,7 @@ if [ ! -d node_modules ]; then npm ci; fi
 
 
 LANGUAGE = protocol.Language(
-    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS | {protocol.PRUNE_ROWS: typescript_prune_rows.PRUNE_ROWS}),),
+    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS | typescript_project.FAMILY_ANSWERS | {protocol.PRUNE_ROWS: typescript_prune_rows.PRUNE_ROWS}),),
     (protocol.Backend("typescript", "typescript", typescript_toolchain.BACKEND | typescript_deploy.BACKEND | {
         protocol.SERVICE_FILES: service_files,
         protocol.NAME_SERVICE: name_service,

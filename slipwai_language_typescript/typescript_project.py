@@ -7,7 +7,9 @@ from __future__ import annotations
 
 from ... import registry as protocol
 
+FAMILY_ANSWERS = {protocol.PIN_FILES: {}, protocol.MAKEFILE_VARIABLES: None}
 ANSWERS = {
+    protocol.PROCFILE: None,
     protocol.GITIGNORE: "node_modules/\ncoverage/\n.build/\n",
     protocol.AGENT_PERMISSIONS: ["npm ci", "npm run verify", "npm test *"],
     protocol.GATE_DESCRIPTION: (
