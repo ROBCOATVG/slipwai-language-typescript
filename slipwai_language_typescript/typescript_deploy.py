@@ -41,4 +41,6 @@ BACKEND: dict[protocol.Member[Any], object] = {
     # node-postgres reads `require` as *verify*, against a CA store RDS's private root is not in.
     # Per managed-database kind; `images.py`, above `POSTGRES_SSLMODE_KINDS`, says how each was measured.
     protocol.POSTGRES_SSLMODE: {"rds": "no-verify", "flexible-server": "no-verify"},
+    # None: the whole workspace is packed, and its `project.toml` at the root is core's (`packs_workspace`).
+    protocol.SERVICE_DESCRIPTORS: {},
 }
