@@ -55,7 +55,7 @@ def event_store_directory(path: str) -> str:
 
 
 # Biome's configuration names `apps/**` and `packages/**`, and `biome format --write .` honours that glob
-# from the root. `packages/` is also where a Go module lives (`SHARED_CODE` in `rules.py`), and Biome
+# from the root. `packages/` is also where a Go module lives (the `go` family's `shared_code`), and Biome
 # formats JSON: a digest over raw bytes then changes because a formatter ran, while `make lint` never
 # saw the files — it is `biome check` inside each npm workspace. The loop is the same test
 # `build-packages` already uses: a directory with a `package.json` is an npm package, and nothing else

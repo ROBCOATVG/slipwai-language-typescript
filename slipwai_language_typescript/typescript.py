@@ -15,7 +15,7 @@ from ..flag_route import wire_entry
 from ..flags import flag_reader
 from ..openapi import published_document
 from ..shared_packages import WORKSPACE
-from . import typescript_deploy, typescript_toolchain
+from . import typescript_deploy, typescript_layout, typescript_toolchain
 
 
 def service_files(event: bool, selection: Selection, target: str = "none") -> dict[str, str]:
@@ -33,7 +33,7 @@ def service_files(event: bool, selection: Selection, target: str = "none") -> di
     files.update(flag_reader(target, "typescript"))
     # And the entry point's half of it: the source is handed to `buildApp`, which is what puts `/api/flags`
     # in front of the browser app. Removed, not left unresolved, where there is no reader. See `flag_route`.
-    wire_entry(files, target)
+    wire_entry(files, target, "typescript")
     # And the store's half: which adapter this project opens, and what `/ready` is handed. See
     # `composition.py` — the entry point is the only place that may name the answer.
     wire_store(files, selection, "typescript")
@@ -339,12 +339,12 @@ if [ ! -d node_modules ]; then npm ci; fi
 
 
 LANGUAGE = protocol.Language(
-    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY),),
+    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS),),
     (protocol.Backend("typescript", "typescript", typescript_toolchain.BACKEND | typescript_deploy.BACKEND | {
         protocol.SERVICE_FILES: service_files,
         protocol.NAME_SERVICE: name_service,
         protocol.REPOSITORY_FILES: repository_files,
         protocol.READY_PATH: "/ready",
         protocol.HEALTH_BODY: '{"status":"ok"}',
-    }),),
-)
+        **typescript_layout.ANSWERS,
+    }),))
