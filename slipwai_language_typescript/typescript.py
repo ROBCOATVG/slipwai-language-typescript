@@ -15,7 +15,7 @@ from ..flag_route import wire_entry
 from ..flags import flag_reader
 from ..openapi import published_document
 from ..shared_packages import WORKSPACE
-from .typescript_deploy import BACKEND as DEPLOY
+from . import typescript_deploy as deploy
 
 
 def service_files(event: bool, selection: Selection, target: str = "none") -> dict[str, str]:
@@ -339,8 +339,8 @@ if [ ! -d node_modules ]; then npm ci; fi
 
 
 LANGUAGE = protocol.Language(
-    (protocol.Family("typescript"),),
-    (protocol.Backend("typescript", "typescript", DEPLOY | {
+    (protocol.Family("typescript", deploy.FAMILY),),
+    (protocol.Backend("typescript", "typescript", deploy.BACKEND | {
         protocol.SERVICE_FILES: service_files,
         protocol.NAME_SERVICE: name_service,
         protocol.REPOSITORY_FILES: repository_files,

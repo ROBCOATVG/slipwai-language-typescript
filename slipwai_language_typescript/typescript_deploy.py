@@ -1,4 +1,5 @@
-"""The TypeScript backend's answers about production: how a service becomes an image, and what it is told there.
+"""The TypeScript answers about production and CI: how a service becomes an image, what it is told there, and
+how CI sets Node up.
 
 Beside `typescript.py` rather than inside it only because that module is at the line budget; its `LANGUAGE`
 merges these in, and they are its answers like any other. The recipe vocabulary (`__APP__`, `__IMAGE__`,
@@ -11,6 +12,16 @@ from typing import Any
 from ... import registry as protocol
 from ...backends import APP
 from ...images import NODE_VERSION, PACK
+from ...services import App
+from ..ci_workflows import NODE_SETUP
+
+
+def ci_toolchain_setup(services: list[App]) -> str:
+    """Node from `actions/setup-node`, its npm cache keyed on the workspace's one lockfile, whatever the services."""
+    return NODE_SETUP
+
+
+FAMILY: dict[protocol.Member[Any], object] = {protocol.CI_TOOLCHAIN_SETUP: ci_toolchain_setup}
 
 BACKEND: dict[protocol.Member[Any], object] = {
     protocol.IMAGE_BUILDER: {
