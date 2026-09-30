@@ -5,11 +5,23 @@ Moved here from core's per-backend tables (S05), keyed by the protocol's member 
 its line budget, which is why these sit beside it."""
 from __future__ import annotations
 
-from ... import registry as protocol
+from typing import Any
 
-FAMILY_ANSWERS = {protocol.PIN_FILES: {}, protocol.MAKEFILE_VARIABLES: None}
-ANSWERS = {
+from ... import registry as protocol
+from ..renovate import RenovateRules
+
+# `.nvmrc`, Renovate's npm group and the Node manager follow the npm workspace, which a browser app has too, so they
+# are core's (`pins.py`, `renovate.py`) and this family asks for nothing of its own.
+FAMILY_ANSWERS: dict[protocol.Member[Any], object] = {
+    protocol.PIN_FILES: {},
+    protocol.MAKEFILE_VARIABLES: None,
+    protocol.RENOVATE_RULES: RenovateRules((), None, None),
+}
+ANSWERS: dict[protocol.Member[Any], object] = {
     protocol.PROCFILE: None,
+    # The reader re-reads AppConfig (AWS) and App Configuration (Azure) live: the one backend with a reader for
+    # either cloud's opt-in transport (`flag_route.flag_transports`).
+    protocol.OPT_IN_FLAG_TRANSPORTS: frozenset({"aws", "azure"}),
     protocol.GITIGNORE: "node_modules/\ncoverage/\n.build/\n",
     protocol.AGENT_PERMISSIONS: ["npm ci", "npm run verify", "npm test *"],
     protocol.GATE_DESCRIPTION: (
