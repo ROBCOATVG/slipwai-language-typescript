@@ -39,7 +39,7 @@ def service_files(event: bool, selection: Selection, target: str = "none") -> di
     wire_store(files, selection, "typescript")
     # The published contract, committed beside the service: which of the two shapes it takes is the same
     # condition that decides whether `/api/flags` is a route at all.
-    files.update(published_document(selection, target, "typescript", "fastify"))
+    files.update(published_document(selection, target, "typescript"))
     files["package.json"] = service_package_json(files["package.json"], selection)
     return files
 
