@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from ... import registry as protocol
+from ..flag_route import EntryWiring
 from ..flags import FlagReader
 
 # The write side: the event port, the adapters behind it, their contract suites and the migrations, and each
@@ -104,8 +105,21 @@ READER = FlagReader(
     call="flagEnabled('checkout-v2')",
 )
 
+# How the flag source is wired into this backend's entry point, keyed by the HTTP option whose app takes it
+# (`flag_route.wire_entry`). No `flag_resource`: this backend's transports are handed the source, and
+# discover no route.
+WIRING = {
+    "fastify": EntryWiring(
+        entry="src/main.ts",
+        line="import { defaultSource } from './flags.js';",
+        argument=", defaultSource()",
+    ),
+}
+
 ANSWERS: dict[protocol.Member[Any], object] = {
     protocol.WRITE_SIDE_FILES: WRITE_SIDE,
     protocol.READ_SIDE_FILES: READ_SIDE,
     protocol.FLAG_READER: READER,
+    protocol.ENTRY_WIRING: WIRING,
+    protocol.FLAG_RESOURCE: {},
 }
