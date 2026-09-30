@@ -207,6 +207,20 @@ STORE = EntryStore(
 )
 
 
+# What "code shared between services" is in this family, and what sharing it would ask of the build: the
+# architecture page's paragraph. The family's answer rather than a backend's, because the unit of sharing is
+# the build tool's rather than the framework's.
+SHARED = (
+    "an npm workspace package under `packages/<name>`, which the root `package.json` already lists in "
+    "`workspaces`; a deployable depends on it by name like any other package, and one `npm ci` installs "
+    "everything. A package that compiles — one that emits the declarations its consumers import — says so "
+    "with a `build` script in its own `package.json`, and `make build-packages` then builds it. Nothing "
+    "else has to be done for that: `build-packages` is already a prerequisite of every target that "
+    "compiles or runs this project's TypeScript code, because a package's `dist/` is not committed "
+    "and a target that forgot it would pass here and fail on a fresh checkout. Only that code: a "
+    "native service's own targets run in CI inside an image with no node in it"
+)
+
 ANSWERS: dict[protocol.Member[Any], object] = {
     protocol.WRITE_SIDE_FILES: WRITE_SIDE,
     protocol.READ_SIDE_FILES: READ_SIDE,
@@ -215,3 +229,6 @@ ANSWERS: dict[protocol.Member[Any], object] = {
     protocol.FLAG_RESOURCE: {},
     protocol.ENTRY_STORE: STORE,
 }
+
+# The family's own: `shared_code` is read by family name (`guidance.architecture`).
+FAMILY_ANSWERS: dict[protocol.Member[Any], object] = {protocol.SHARED_CODE: SHARED}

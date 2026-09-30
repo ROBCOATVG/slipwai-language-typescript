@@ -339,7 +339,7 @@ if [ ! -d node_modules ]; then npm ci; fi
 
 
 LANGUAGE = protocol.Language(
-    (protocol.Family("typescript"),),
+    (protocol.Family("typescript", layout.FAMILY_ANSWERS),),
     (protocol.Backend("typescript", "typescript", {
         protocol.SERVICE_FILES: service_files,
         protocol.NAME_SERVICE: name_service,
