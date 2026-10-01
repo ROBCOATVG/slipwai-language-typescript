@@ -9,11 +9,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from ... import registry as protocol
-from ...backends import APP
-from ...images import NODE_VERSION, PACK
-from ...services import App
-from ..ci_workflows import NODE_SETUP
+from slipwai import registry as protocol
+from slipwai.backends import APP
+from slipwai.images import NODE_VERSION, PACK
+from slipwai.project.ci_workflows import NODE_SETUP
+from slipwai.services import App
 
 
 def ci_toolchain_setup(services: list[App]) -> str:

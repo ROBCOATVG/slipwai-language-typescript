@@ -10,10 +10,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ...assets import LANGUAGE_ROOT
-from ...npm_workspace import NpmWorkspace
-from ...selection import Selection
+from slipwai.npm_workspace import NpmWorkspace
+from slipwai.selection import Selection
+
 from .typescript_toolchain import TOOLING
+
+# This package's own assets, laid out as core's: `languages/typescript/…` and `backing-services/typescript/…`.
+ASSETS = Path(__file__).resolve().parents[1] / "assets"
 
 # The only features that add an npm dependency to a service, and therefore the only ones that change its lockfile.
 # A lockfile is committed per combination rather than patched after the fact, because `npm ci` refuses to
@@ -21,7 +24,7 @@ from .typescript_toolchain import TOOLING
 # `scripts/regenerate-locks.py` builds every one of these from the same manifests the generator emits. The
 # workspace lock beside a browser app is named for the service's and then the browser app's.
 LOCK_FEATURES = ("fastify", "postgres")
-ASSETS = LANGUAGE_ROOT / "typescript"
+TYPESCRIPT = ASSETS / "languages/typescript"
 
 
 def lock_suffix(selection: Selection) -> str:
@@ -33,19 +36,19 @@ def lock_suffix(selection: Selection) -> str:
 
 def service_lock(selection: Selection) -> Path:
     """Which committed lockfile matches this selection's dependency set."""
-    return ASSETS / f"locks/package-lock{lock_suffix(selection)}.json"
+    return TYPESCRIPT / f"locks/package-lock{lock_suffix(selection)}.json"
 
 
 def workspace_lock(selection: Selection, web_suffix: str) -> Path:
     """The committed lock of a workspace whose first TypeScript service has this selection, beside browser apps
     whose part of the name is `web_suffix`: resolved with both, because their dependencies hoist together."""
-    return ASSETS / f"workspace-locks/typescript-backend{lock_suffix(selection)}{web_suffix}.json"
+    return TYPESCRIPT / f"workspace-locks/typescript-backend{lock_suffix(selection)}{web_suffix}.json"
 
 
 WORKSPACE_ANSWER = NpmWorkspace(
     member_lock=service_lock,
     workspace_lock=workspace_lock,
     image=TOOLING["ci_image"],
-    biome=ASSETS / "biome",
-    biome_pins=(ASSETS / "app/package.json",),
+    biome=TYPESCRIPT / "biome",
+    biome_pins=(TYPESCRIPT / "app/package.json",),
 )

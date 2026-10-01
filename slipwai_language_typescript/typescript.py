@@ -2,25 +2,30 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
-from ... import registry as protocol
-from ...assets import LANGUAGE_ROOT, asset_tree
-from ...selection import Selection
-from ...services import App
-from ...tooling import package_name
-from ..backing_services import backing_service_service_files
-from ..composition import wire_store
-from ..flag_route import wire_entry
-from ..flags import flag_reader
-from ..openapi import published_document
-from ..shared_packages import WORKSPACE, workspace_manifest, workspace_scripts
+from slipwai import registry as protocol
+from slipwai.assets import asset_tree
+from slipwai.project.backing_services import backing_service_service_files
+from slipwai.project.composition import wire_store
+from slipwai.project.flag_route import wire_entry
+from slipwai.project.flags import flag_reader
+from slipwai.project.openapi import published_document
+from slipwai.project.shared_packages import WORKSPACE, workspace_manifest, workspace_scripts
+from slipwai.selection import Selection
+from slipwai.services import App
+from slipwai.tooling import package_name
+
 from . import typescript_deploy, typescript_layout, typescript_project, typescript_prune_rows, typescript_toolchain
 from .typescript_workspace import WORKSPACE_ANSWER, service_lock
+
+# This package's own assets, laid out as core's: `languages/typescript/…` and `backing-services/typescript/…`.
+ASSETS = Path(__file__).resolve().parents[1] / "assets"
 
 
 def service_files(event: bool, selection: Selection, target: str = "none") -> dict[str, str]:
     """What this backend puts in a service's directory, keyed relative to it."""
-    files = asset_tree(LANGUAGE_ROOT / "typescript/app")
+    files = asset_tree(ASSETS / "languages/typescript/app")
     files.update({
         "package-lock.json": service_lock(selection).read_text(),
         # The two the selection decides the contents of, so they are written rather than copied.

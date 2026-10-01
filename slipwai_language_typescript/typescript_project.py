@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ... import registry as protocol
-from ..renovate import RenovateRules
+from slipwai import registry as protocol
+from slipwai.project.renovate import RenovateRules
 
 # `.nvmrc`, Renovate's npm group and the Node manager follow the npm workspace, which a browser app has too, so they
 # are core's (`pins.py`, `renovate.py`) and this family asks for nothing of its own.

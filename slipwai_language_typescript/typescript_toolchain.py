@@ -1,7 +1,7 @@
 """TypeScript's toolchain: how a service in this language installs, starts, checks and formats itself.
 
-These are the language's answers to the toolchain members of the backend protocol (`src/slipwai/registry.py`,
-whose shapes are fixed in `specs/001-slipwai-2-language-addons/contracts/backend-protocol.md`). `BACKEND` is
+These are the language's answers to the toolchain members of the backend protocol (slipwai's `registry` module,
+whose shapes are fixed in its backend-protocol contract). `BACKEND` is
 what the `typescript` backend answers and `FAMILY` what the family does. `typescript.py`'s `LANGUAGE` takes
 both in. A command spells a service's path `APP`, which `tooling.for_app` stamps per service.
 """
@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from ... import registry as protocol
-from ...backends import APP, NODE_MAJOR, Tooling
-from ...tooling import for_app
-from ..shared_packages import PACKAGES
+from slipwai import registry as protocol
+from slipwai.backends import APP, NODE_MAJOR, Tooling
+from slipwai.project.shared_packages import PACKAGES
+from slipwai.tooling import for_app
 
 TOOLING: Tooling = {
     # The answer is owed and is this, but no recipe runs it: a target of this family's takes the npm
