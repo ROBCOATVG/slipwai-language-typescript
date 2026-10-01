@@ -1,0 +1,19 @@
+{
+  "name": "typescript",
+  "core": ">=9.0,<10",
+  "order": 10,
+  "family": "typescript",
+  "backends": {
+    "typescript": {
+      "label": "TypeScript — Node and npm workspaces, ESLint, `tsc`, Vitest",
+      "targets": ["none", "existing", "aws", "azure"],
+      "options": {
+        "event-store": ["memory", "sqlite", "postgres"],
+        "http": ["none", "fastify"],
+        "auth": ["none", "keycloak", "cognito", "entra", "auth0"],
+        "users": ["none", "keycloak", "cognito", "auth0"]
+      },
+      "defaults": {"http": "fastify"}
+    }
+  }
+}
