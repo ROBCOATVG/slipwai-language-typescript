@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from ... import registry as protocol
 from ...assets import LANGUAGE_ROOT, asset_tree
@@ -14,8 +13,9 @@ from ..composition import wire_store
 from ..flag_route import wire_entry
 from ..flags import flag_reader
 from ..openapi import published_document
-from ..shared_packages import WORKSPACE
+from ..shared_packages import WORKSPACE, workspace_manifest, workspace_scripts
 from . import typescript_deploy, typescript_layout, typescript_project, typescript_prune_rows, typescript_toolchain
+from .typescript_workspace import WORKSPACE_ANSWER, service_lock
 
 
 def service_files(event: bool, selection: Selection, target: str = "none") -> dict[str, str]:
@@ -176,15 +176,6 @@ PACKAGE_ADDITIONS: dict[str, dict[str, dict[str, str]]] = {
 }
 
 
-def workspace_scripts(node_services: list[App]) -> dict[str, str]:
-    """The root manifest's scripts: `build` compiles every Node service, in one command for a person; `make
-    build` compiles each by name before packing its image. Named per service rather than `--workspaces`, so
-    a browser app in the same workspace is never mistaken for one."""
-    if not node_services:
-        return {}
-    return {"build": " && ".join(f"npm --workspace {service.path} run build --if-present" for service in node_services)}
-
-
 def service_package_json(source: str, selection: Selection) -> str:
     """Add only the dependencies and scripts the selection actually needs, from `PACKAGE_ADDITIONS`."""
     package = json.loads(source)
@@ -203,52 +194,6 @@ def service_package_json(source: str, selection: Selection) -> str:
     package["scripts"] = scripts
     return json.dumps(package, indent=2) + "\n"
 
-
-# What a feature adds to a *browser app's* manifest — the customer login's OIDC client. Keyed by feature like
-# `PACKAGE_ADDITIONS`, and kept in step with `WEB_PACKAGE_EDITS` in assets/backing-services/prune.py the same
-# way. A browser app gets a feature's dependencies when any service in the project has the feature, because
-# that is when the pruner would keep them.
-WEB_PACKAGE_ADDITIONS: dict[str, dict[str, str]] = {
-    "users-keycloak": {"oidc-client-ts": "3.5.0", "react-oidc-context": "3.3.1"},
-}
-
-
-def web_package_json(source: str, features: set[str]) -> str:
-    """The browser app's manifest with the dependencies its project's features need, from `WEB_PACKAGE_ADDITIONS`."""
-    package = json.loads(source)
-    dependencies = dict(package.get("dependencies", {}))
-    for feature, additions in WEB_PACKAGE_ADDITIONS.items():
-        if feature in features:
-            dependencies.update(additions)
-    package["dependencies"] = dict(sorted(dependencies.items()))
-    return json.dumps(package, indent=2) + "\n"
-
-
-# The only features that add an npm dependency, and therefore the only ones that change the lockfile. A
-# lockfile is committed per combination rather than patched after the fact, because `npm ci` refuses to
-# install from a lockfile that disagrees with package.json — the pair has to move together.
-# `scripts/regenerate-locks.py` builds every one of these from the same manifests the generator emits.
-# Two tuples because the two manifests differ: a service's lock is named for the service's features, and the
-# workspace lock beside a browser app for the service's and then the browser app's.
-LOCK_FEATURES = ("fastify", "postgres")
-WEB_LOCK_FEATURES = tuple(WEB_PACKAGE_ADDITIONS)
-
-
-def lock_suffix(selection: Selection) -> str:
-    """The lockfile name for this selection's dependency set: '' for the plain one, '-fastify-postgres' for
-    both. Sorted by `LOCK_FEATURES` so one dependency set has exactly one name."""
-    chosen = [feature for feature in LOCK_FEATURES if selection.has(feature)]
-    return "".join(f"-{feature}" for feature in chosen)
-
-
-def web_lock_suffix(features: set[str]) -> str:
-    """The part of a workspace lock's name that is the browser app's: '' or '-users-keycloak'."""
-    return "".join(f"-{feature}" for feature in WEB_LOCK_FEATURES if feature in features)
-
-
-def service_lock(selection: Selection) -> Path:
-    """Which committed lockfile matches this selection's dependency set."""
-    return LANGUAGE_ROOT / f"typescript/locks/package-lock{lock_suffix(selection)}.json"
 
 # What the published API document calls this service, carried in `http-app.ts` as a token for the reason
 # `__TRANSPORT__` and `__APP_SERVICES__` are: the file it sits in is TypeScript, and a document has to name
@@ -273,19 +218,6 @@ def name_service(project_name: str, service: App, files: dict[str, str]) -> dict
         if path in files:
             files[path] = files[path].replace(SERVICE_NAME, package["name"])
     return files
-
-
-def workspace_manifest(project_name: str, workspaces: list[str], scripts: dict[str, str]) -> str:
-    """The root `package.json` of the npm workspace: the project's name, the members it holds, and the
-    scripts that run across them (`workspace_scripts`; none when no service is Node).
-
-    Written here and read by `frontend.py` too, because whichever module owns the workspace in a given
-    project — this one without a browser app, that one with — the manifest is the same file.
-    """
-    manifest: dict = {"name": project_name, "version": "0.1.0", "private": True, "workspaces": workspaces}
-    if scripts:
-        manifest["scripts"] = scripts
-    return json.dumps(manifest, indent=2) + "\n"
 
 
 def repository_files(
@@ -339,7 +271,7 @@ if [ ! -d node_modules ]; then npm ci; fi
 
 
 LANGUAGE = protocol.Language(
-    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS | typescript_project.FAMILY_ANSWERS | {protocol.PRUNE_ROWS: typescript_prune_rows.PRUNE_ROWS}),),
+    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS | typescript_project.FAMILY_ANSWERS | {protocol.PRUNE_ROWS: typescript_prune_rows.PRUNE_ROWS, protocol.NPM_WORKSPACE: WORKSPACE_ANSWER}),),
     (protocol.Backend("typescript", "typescript", typescript_toolchain.BACKEND | typescript_deploy.BACKEND | {
         protocol.SERVICE_FILES: service_files,
         protocol.NAME_SERVICE: name_service,
