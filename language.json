@@ -6,14 +6,69 @@
   "backends": {
     "typescript": {
       "label": "TypeScript — Node and npm workspaces, ESLint, `tsc`, Vitest",
-      "targets": ["none", "existing", "aws", "azure"],
+      "targets": [
+        "none",
+        "existing",
+        "aws",
+        "azure"
+      ],
       "options": {
-        "event-store": ["memory", "sqlite", "postgres"],
-        "http": ["none", "fastify"],
-        "auth": ["none", "keycloak", "cognito", "entra", "auth0"],
-        "users": ["none", "keycloak", "cognito", "auth0"]
+        "event-store": [
+          "memory",
+          "sqlite",
+          "postgres"
+        ],
+        "http": [
+          "none",
+          "fastify"
+        ],
+        "auth": [
+          "none",
+          "keycloak",
+          "cognito",
+          "entra",
+          "auth0"
+        ],
+        "users": [
+          "none",
+          "keycloak",
+          "cognito",
+          "auth0"
+        ]
       },
-      "defaults": {"http": "fastify"}
+      "defaults": {
+        "http": "fastify"
+      }
+    }
+  },
+  "axes": {
+    "http": {
+      "fastify": {
+        "label": "Fastify — JSON API, schema-parsed at the edge",
+        "capabilities": [
+          "http-fastify"
+        ],
+        "features": [
+          "fastify"
+        ],
+        "containers": [],
+        "migrations": false,
+        "integration-suite": false,
+        "targets": [
+          "none",
+          "existing",
+          "aws",
+          "azure"
+        ],
+        "app-in-compose": true,
+        "repository-owned": [
+          "packages/api-client"
+        ],
+        "web-app-owned": [
+          "src/routes",
+          "tests/routes"
+        ]
+      }
     }
   }
 }
