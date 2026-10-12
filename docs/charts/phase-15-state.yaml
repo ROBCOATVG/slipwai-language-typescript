@@ -21,7 +21,7 @@ slices:
   '15.8':
     fairway: phase-15-event-modelling
     sets: [VersionedStateRepository, MandatoryEventContext]
-    steers_by: [ServiceWriteModelSelection, ExistingEventStorePort]
+    steers_by: [ServiceWriteModelSelection, ExistingEventStorePort, SourceSiblingTopology]
 marks:
   VersionedStateRepository:
     kind: port
@@ -46,3 +46,8 @@ marks:
     kind: port
     inputs: {streamId: string, expectedVersion: integer, events: array}
     outputs: {outcome: appended-or-version-conflict}
+  SourceSiblingTopology:
+    kind: port
+    inputs: {repository: public-github-slug, ref: full-commit-sha, packages: validated-package-names}
+    outputs: {siblings: contained-source-packages, provenance: tested-source-commit}
+    source: ROBCOATVG/slipwai_v2_Fork@75c053a86817bd12676948f0344f94c451145b62

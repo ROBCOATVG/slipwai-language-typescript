@@ -44,3 +44,9 @@ durable outbox. A publisher failure needs an application-specific recovery polic
 generates both rungs with all three adapters, runs their real gates and the PostgreSQL contracts. The
 `state-contract` PR job runs the same proof against PostgreSQL 17, including two independent pools
 racing an insert and a same-version update. Ordinary conformance needs no database or Node toolchain.
+
+The CI keel, reusable workflow and unpublished AWS/Azure target sources are pinned together to
+`ROBCOATVG/slipwai_v2_Fork@75c053a86817bd12676948f0344f94c451145b62`. Source siblings are declared explicitly and
+validated before normal conformance; this proves their checkout topology without pretending they are
+published chandlery packages. Both conformance/matrix/tag builds and the native state-contract job use
+that same source commit, while the TypeScript checkout remains the package under test.
