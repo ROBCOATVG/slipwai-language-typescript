@@ -16,9 +16,11 @@ from slipwai.project.entry_stores import EntryStore, marked
 from slipwai.project.flag_route import EntryWiring
 from slipwai.project.flags import FlagReader
 
+from .typescript_state import STATE_WRITE
+
 # The write side: the event port, the adapters behind it, their contract suites and the migrations, and each
 # transport's and identity provider's own files.
-WRITE_SIDE: dict[str, dict[str, str]] = {
+WRITE_SIDE: dict[str, dict[str, Any]] = {
     "memory": {
         "src/application/ports/events.ts": "events.ts",
         "src/adapters/driven/event-store-memory.ts": "event-store-memory.ts",
@@ -62,6 +64,12 @@ WRITE_SIDE: dict[str, dict[str, str]] = {
         "tests/users/oidc-keycloak.test.ts": "tests/users-oidc-keycloak.test.ts",
     },
 }
+WRITE_SIDE["state"] = {**STATE_WRITE, **{key: WRITE_SIDE[key] for key in ("fastify", "keycloak", "users-keycloak")}}
+WRITE_SIDE["memory"].update({
+    "src/application/ports/event-context.ts": "event-context.ts",
+    "tests/contract/event-context.test.ts": "tests/event-context.test.ts",
+    "tests/contract/event-append-context.test.ts": "tests/event-append-context.test.ts",
+})
 
 # The read side: the checkpoint port and its adapters, the catch-up runner, and the migrations that create the
 # checkpoint table and the tag index. Every backend covers the same ground (`docs/backend-obligations.md` §3).
@@ -127,8 +135,8 @@ TYPESCRIPT_APP_IMPORT = "import { buildApp, readiness } from './adapters/driving
 TYPESCRIPT_PORT_IMPORT = (
     "import type { EventStore } from './application/ports/events.js';\nimport type { Config } from './config.js';\n"
 )
-TYPESCRIPT_OPEN_HEAD = """// The event store this project answered the event-store question with, opened once and handed to
-// whatever needs it. Nothing else in this service constructs one.
+TYPESCRIPT_OPEN_HEAD = """// The event store this project selected, opened once and handed to whatever needs it.
+// Nothing else in this service constructs one.
 //
 // It takes the checked environment rather than reading `process.env`: `@fastify/env` populates
 // `app.config` while the app boots, so `readiness` calls this once from inside `after`, which is where

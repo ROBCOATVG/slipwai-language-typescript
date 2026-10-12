@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   conformance:
-    uses: ROBCOATVG/slipwai_v2_Fork/.github/workflows/package.yml@main
+    uses: ROBCOATVG/slipwai_v2_Fork/.github/workflows/package.yml@75c053a86817bd12676948f0344f94c451145b62
     with:
       package: typescript
       kind: language
@@ -45,9 +45,56 @@ jobs:
       channel: 'ROBCOATVG/slipwai-index'
       # Which keel to prove against: a bare version is one on PyPI, anything else is passed to pip as it
       # stands. Empty installs `slipwai`, which is right once the version you need is published.
-      keel: 'git+https://github.com/ROBCOATVG/slipwai_v2_Fork@main'
+      keel: 'git+https://github.com/ROBCOATVG/slipwai_v2_Fork@75c053a86817bd12676948f0344f94c451145b62'
+      # These target packages have no chandlery release yet; prove exactly this source topology.
+      beside_source_repository: ROBCOATVG/slipwai_v2_Fork
+      beside_source_ref: '75c053a86817bd12676948f0344f94c451145b62'
+      beside_source_packages: 'aws azure'
     # A token that may open a pull request on that channel. Without it a tag still builds the release
     # and attaches it to itself, and `slipwai package register` finishes the job by hand — so a fork
     # needs no credential and a package nobody owns can still be proved.
     secrets:
       chandlery_token: ${{ secrets.CHANDLERY_TOKEN }}
+
+  state-contract:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: contract
+          POSTGRES_DB: contracts
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: packages/typescript
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: actions/checkout@v6
+        with:
+          repository: ROBCOATVG/slipwai_v2_Fork
+          ref: '75c053a86817bd12676948f0344f94c451145b62'
+          path: keel
+      - name: Install the exact tested keel and expose its declared target source
+        env:
+          PACKAGE_SOURCES_REPOSITORY: ROBCOATVG/slipwai_v2_Fork
+          PACKAGE_SOURCES_REF: '75c053a86817bd12676948f0344f94c451145b62'
+          PACKAGE_SOURCES_NAMES: 'aws azure'
+          PACKAGE_UNDER_TEST: typescript
+        run: |
+          python -m pip install ./keel
+          python -m slipwai.package_sources --source keel --destination packages
+      - name: Generate both rungs and prove native gates plus independent PostgreSQL contenders
+        env:
+          SLIPWAI_STATE_NATIVE: '1'
+          SLIPWAI_LANGUAGES: ${{ github.workspace }}/packages
+          DATABASE_URL: postgres://postgres:contract@localhost:5432/contracts
+        run: python -m unittest discover -s packages/typescript/tests -p test_state_skeleton.py -v

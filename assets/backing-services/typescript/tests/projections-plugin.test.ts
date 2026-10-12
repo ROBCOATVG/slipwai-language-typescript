@@ -54,9 +54,12 @@ const event = (stream: string, type: string): DomainEvent => ({
   schemaVersion: 1,
   streamId: stream,
   payload: {},
-  occurredAt: '2024-01-01T00:00:00.000Z',
-  actor: { kind: 'test', id: 'projections' },
-  correlationId: createCorrelationId('018f3a2b-6c41-7c9d-9f0e-2a5b7c1d4e84'),
+  context: {
+    actor_id: 'projections',
+    occurred_at: '2024-01-01T00:00:00.000Z',
+    correlation_id: createCorrelationId('018f3a2b-6c41-7c9d-9f0e-2a5b7c1d4e84'),
+    causation_id: null,
+  },
 });
 
 describe('the projections plugin', () => {

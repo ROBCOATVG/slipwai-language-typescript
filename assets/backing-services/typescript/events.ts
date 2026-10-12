@@ -24,78 +24,29 @@
 /** `expectedVersion` for a stream that must not exist yet, which is how first-write races are detected. */
 export const NO_STREAM = -1;
 
-/** Who or what caused the event. Recorded on every event so the log answers "who did this". */
-export type Actor = Readonly<{ kind: string; id: string }>;
+import type { RaisedEvent } from './event-context.js';
 
-/**
- * Correlation and causation are **UUIDs**, and branded so the compiler knows it. They are written by one
- * service and read by another, often years later by a tool nobody has written yet, so the one thing they
- * must be is unambiguous: a UUID is unique without a registry, parses the same everywhere, and cannot
- * quietly become a request path, a customer reference, or an empty string that nothing rejects.
- *
- * Two brands rather than one alias used twice, because they sit side by side in every event below and are
- * both strings underneath. Swapping them is invisible at runtime and destroys the one thing they exist for
- * — a causal tree in which everything appears to have caused itself.
- */
-export type CorrelationId = string & { readonly __brand: 'CorrelationId' };
-export type CausationId = string & { readonly __brand: 'CausationId' };
+export type { CausationId, CorrelationId, EventContext } from './event-context.js';
+export {
+  createCausationId,
+  createCorrelationId,
+  createEventContext,
+  delegatedContext,
+  raise,
+} from './event-context.js';
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/**
- * Lower-cased on the way through, so one id has one spelling. Postgres hands back the canonical form
- * whatever went in, and a store that keeps the caller's casing would compare unequal to the same id read
- * back from a `uuid` column.
- */
-const asUuid = (raw: string, what: string): string => {
-  if (!UUID.test(raw)) throw new Error(`a ${what} must be a UUID, and '${raw}' is not`);
-  return raw.toLowerCase();
-};
-
-/**
- * Parse an incoming correlation id, or `randomUUID()` to start a new business transaction. Parsing at the
- * edge is what keeps the brand honest: a value that arrived as text — from a header, a queue message, or a
- * stored row — is checked once, here, rather than trusted everywhere.
- */
-export const createCorrelationId = (raw: string): CorrelationId =>
-  asUuid(raw, 'correlation id') as CorrelationId; // justified: validated above, then branded
-
-/**
- * Parse the id of the message that directly caused an event. The rule, from Greg Young: responding to a
- * message, you copy its correlation id as your own and take its id as your causation id.
- */
-export const createCausationId = (raw: string): CausationId =>
-  asUuid(raw, 'causation id') as CausationId; // justified: validated above, then branded
-
-export type DomainEvent = Readonly<{
-  type: string;
-  schemaVersion: 1;
-  streamId: string;
-  payload: Readonly<Record<string, unknown>>;
-  /**
-   * Domain time, as an ISO-8601 instant. Taken from a clock at the edge and passed in as a typed input —
-   * the domain never reads the clock, which is what makes a decision function testable without freezing
-   * global time. Distinct from `recordedAt` below, and conflating the two is how clock problems become
-   * unreconcilable.
-   */
-  occurredAt: string;
-  actor: Actor;
-  /** The whole business transaction this event belongs to. */
-  correlationId: CorrelationId;
-  /**
-   * The message that directly caused this event, and absent when nothing did — the first event of a
-   * transaction has no cause to point at, and inventing one would be a lie about the shape of the tree.
-   */
-  causationId?: CausationId;
-}>;
+/** A context is mandatory on every append; a payload alone is not an event. */
+export type DomainEvent = RaisedEvent;
 
 /** What the store gives back: the event plus the facts only the store can know. */
-export type CommittedEvent = DomainEvent &
-  Readonly<{
-    version: number;
-    globalPosition: number;
-    recordedAt: string;
-  }>;
+export type StoreMetadata = Readonly<{
+  version: number;
+  globalPosition: number;
+  recordedAt: string;
+}>;
+
+/** Store metadata, typed context and business payload are separate parts. */
+export type CommittedEvent = DomainEvent & StoreMetadata;
 
 /**
  * A version conflict is a **return value, not a thrown error**. Contention is expected under load, not

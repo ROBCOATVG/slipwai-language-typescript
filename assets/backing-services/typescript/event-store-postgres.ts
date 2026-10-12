@@ -1,8 +1,11 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-
 import type { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import {
+  assertEventContext,
+  storedActor,
+  storedContext,
+} from '../../../application/ports/event-context.js';
 import type {
-  Actor,
   AppendResult,
   CommittedEvent,
   Condition,
@@ -16,8 +19,6 @@ import type {
 import {
   appended,
   conditionConflict,
-  createCausationId,
-  createCorrelationId,
   defaultTagsOf,
   recorded,
   versionConflict,
@@ -74,13 +75,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function actorFrom(value: unknown, position: string): Actor {
-  if (!isRecord(value) || typeof value.kind !== 'string' || typeof value.id !== 'string') {
-    throw new Error(`event at global_position ${position} has no usable actor`);
-  }
-  return { kind: value.kind, id: value.id };
-}
-
 /**
  * Parse a stored row back into a CommittedEvent.
  *
@@ -104,10 +98,12 @@ function toCommittedEvent(row: EventRow): CommittedEvent {
     schemaVersion: 1,
     streamId: row.stream_id,
     payload: row.payload,
-    occurredAt: row.occurred_at.toISOString(),
-    actor: actorFrom(row.actor, row.global_position),
-    correlationId: createCorrelationId(row.correlation_id),
-    ...(row.causation_id === null ? {} : { causationId: createCausationId(row.causation_id) }),
+    context: storedContext(
+      row.actor,
+      row.occurred_at.toISOString(),
+      row.correlation_id,
+      row.causation_id,
+    ),
     version: row.version,
     globalPosition: Number(row.global_position),
     recordedAt: row.recorded_at.toISOString(),
@@ -381,10 +377,10 @@ export function createPostgresEventStore(
       event.type,
       event.schemaVersion,
       JSON.stringify(event.payload),
-      JSON.stringify(event.actor),
-      event.correlationId,
-      event.causationId ?? null,
-      event.occurredAt,
+      JSON.stringify(storedActor(event.context)),
+      event.context.correlation_id,
+      event.context.causation_id,
+      event.context.occurred_at,
       guardAgainst,
     ]);
     const position = result.rows[0]?.global_position;
@@ -398,6 +394,7 @@ export function createPostgresEventStore(
     expectedVersion: number,
     events: readonly DomainEvent[],
   ): Promise<AppendResult> => {
+    for (const event of events) assertEventContext(event.context);
     if (events.length === 0) return appended(expectedVersion);
 
     try {
@@ -512,6 +509,7 @@ export function createPostgresEventStore(
     condition: Condition,
     events: readonly DomainEvent[],
   ): Promise<ConditionalAppendResult> => {
+    for (const event of events) assertEventContext(event.context);
     try {
       return await inUnitOfWork(
         async () => {

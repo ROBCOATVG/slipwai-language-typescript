@@ -89,10 +89,29 @@ export function eventStoreContract(
       schemaVersion: 1,
       streamId,
       payload,
-      occurredAt: '2024-01-01T00:00:00.000Z',
-      actor: { kind: 'test', id: run },
-      correlationId: createCorrelationId(run),
-      ...(causationId === undefined ? {} : { causationId }),
+      context: {
+        actor_id: run,
+        occurred_at: '2024-01-01T00:00:00.000Z',
+        correlation_id: createCorrelationId(run),
+        causation_id: causationId ?? null,
+      },
+    });
+
+    it('rejects invalid calendar context atomically on both append boundaries', async () => {
+      const id = newStream();
+      const valid = event(id, 'Valid');
+      const invalid = {
+        ...valid,
+        context: { ...valid.context, occurred_at: '2026-02-30T12:00:00Z' },
+      };
+      await expect(store.append(id, NO_STREAM, [valid, invalid])).rejects.toThrow('ISO instant');
+      await expect(
+        store.appendIf({ query: { filters: [{ tags: [streamTag(id)] }] }, after: 0 }, [
+          valid,
+          invalid,
+        ]),
+      ).rejects.toThrow('ISO instant');
+      expect(await store.read(id)).toEqual([]);
     });
 
     it('reads an unknown stream as empty rather than failing', async () => {
@@ -125,8 +144,28 @@ export function eventStoreContract(
       const [first, second] = events as [CommittedEvent, CommittedEvent];
       expect(second.globalPosition).toBeGreaterThan(first.globalPosition);
       expect(Date.parse(first.recordedAt)).not.toBeNaN();
-      expect(first.occurredAt).toBe('2024-01-01T00:00:00.000Z');
-      expect(first.actor).toEqual({ kind: 'test', id: run });
+      expect(first.context.occurred_at).toBe('2024-01-01T00:00:00.000Z');
+      expect(first.context.actor_id).toBe(run);
+    });
+
+    it('round-trips delegated attribution without treating actor_id as ownership', async () => {
+      const stream = newStream();
+      const fact = event(stream, 'DelegationRecorded', { ownerId: 'another-person' });
+      await store.append(stream, NO_STREAM, [
+        { ...fact, context: { ...fact.context, on_behalf_of: 'customer-1' } },
+      ]);
+      const [saved] = await store.read(stream);
+      expect(saved?.context.on_behalf_of).toBe('customer-1');
+      expect(saved?.payload.ownerId).toBe('another-person');
+    });
+
+    it('rejects missing context before appending any event', async () => {
+      const stream = newStream();
+      const body = { type: 'Started', schemaVersion: 1 as const, streamId: stream, payload: {} };
+      await expect(
+        store.append(stream, NO_STREAM, [body as unknown as DomainEvent]),
+      ).rejects.toThrow('actor_id');
+      expect(await store.read(stream)).toEqual([]);
     });
 
     /**
@@ -144,10 +183,10 @@ export function eventStoreContract(
       ]);
 
       const [first, second] = (await store.read(stream)) as [CommittedEvent, CommittedEvent];
-      expect(first.correlationId).toBe(createCorrelationId(run));
+      expect(first.context.correlation_id).toBe(createCorrelationId(run));
       // The first event of a transaction has no cause, and the store does not invent one.
-      expect(first.causationId).toBeUndefined();
-      expect(second.causationId).toBe(cause);
+      expect(first.context.causation_id).toBeNull();
+      expect(second.context.causation_id).toBe(cause);
     });
 
     it('reports a stale expected version as a value, not a thrown error', async () => {

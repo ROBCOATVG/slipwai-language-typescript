@@ -79,7 +79,7 @@ BACKEND: dict[protocol.Member[Any], object] = {
         f"/workspace/{APP}/node_modules",
         f"/workspace/{APP}/.build",
     ),
-    protocol.EVENT_STORE_DIRECTORY: event_store_directory,
+    protocol.PERSISTENCE_DIRECTORY: event_store_directory,
     protocol.NATIVE_COMMANDS: native_commands,
 }
 FAMILY: dict[protocol.Member[Any], object] = {protocol.FORMATTER: BIOME_FORMAT}

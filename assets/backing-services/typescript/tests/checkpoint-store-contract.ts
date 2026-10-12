@@ -48,9 +48,12 @@ export function checkpointStoreContract(
       schemaVersion: 1,
       streamId,
       payload: {},
-      occurredAt: '2024-01-01T00:00:00.000Z',
-      actor: { kind: 'test', id: 'checkpoints' },
-      correlationId: createCorrelationId(randomUUID()),
+      context: {
+        actor_id: 'checkpoints',
+        occurred_at: '2024-01-01T00:00:00.000Z',
+        correlation_id: createCorrelationId(randomUUID()),
+        causation_id: null,
+      },
     });
 
     /**

@@ -90,9 +90,12 @@ describe('the catch-up runner', () => {
           schemaVersion: 1,
           streamId: stream,
           payload: {},
-          occurredAt: '2024-01-01T00:00:00.000Z',
-          actor: { kind: 'test', id: 'projections' },
-          correlationId: createCorrelationId(randomUUID()),
+          context: {
+            actor_id: 'projections',
+            occurred_at: '2024-01-01T00:00:00.000Z',
+            correlation_id: createCorrelationId(randomUUID()),
+            causation_id: null,
+          },
         }),
       ),
     );

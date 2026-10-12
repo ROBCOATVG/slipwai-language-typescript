@@ -11,12 +11,17 @@ PRUNE_ROWS = {
     "marked_files": ("vitest.config.ts", "tsconfig.json", "src/config.ts", "src/main.ts"),
     "owned_files": {
         "sqlite": (
+            "src/adapters/driven/repository-sqlite.ts",
+            "tests/contract/repository-sqlite.test.ts",
             "src/adapters/driven/event-store-sqlite.ts",
             "src/adapters/driven/checkpoint-store-sqlite.ts",
             "tests/contract/event-store-sqlite.test.ts",
             "tests/contract/checkpoint-store-sqlite.test.ts",
         ),
         "postgres": (
+            "src/adapters/driven/repository-postgres/index.ts",
+            "tests/integration/repository-postgres.test.ts",
+            "migrations/001_states.js",
             "src/adapters/driven/event-store-postgres/index.ts",
             "src/adapters/driven/event-store-postgres/checkpoint-store-postgres.ts",
             "migrations/001_events.js",

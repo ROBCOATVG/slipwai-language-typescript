@@ -60,6 +60,35 @@ async function migratedStore(tagsOf: TagsOf = defaultTagsOf) {
 
 eventStoreContract('the Postgres event store', migratedStore);
 
+describe('existing event history', () => {
+  it('reads the prior actor/time columns as context without rewriting history', async () => {
+    const id = crypto.randomUUID();
+    const correlation = crypto.randomUUID();
+    const row = await pool.query<{ global_position: string }>(
+      `INSERT INTO events (stream_id, version, event_type, schema_version, payload, actor,
+        correlation_id, causation_id, occurred_at)
+       VALUES ($1, 0, 'LegacyFact', 1, $2, $3, $4, NULL, $5) RETURNING global_position`,
+      [
+        id,
+        JSON.stringify({ ownerId: 'customer-1' }),
+        JSON.stringify({ kind: 'legacy-test', id: 'operator-1' }),
+        correlation,
+        '2024-01-01T00:00:00.000Z',
+      ],
+    );
+    const [event] = await createPostgresEventStore(pool).read(id);
+    expect(event?.context).toEqual({
+      actor_id: 'operator-1',
+      occurred_at: '2024-01-01T00:00:00.000Z',
+      correlation_id: correlation,
+      causation_id: null,
+    });
+    expect(event?.payload).toEqual({ ownerId: 'customer-1' });
+    expect(event?.globalPosition).toBe(Number(row.rows[0]?.global_position));
+    expect(event?.version).toBe(0);
+  });
+});
+
 describe('the Postgres event store under genuine contention', () => {
   // One id for the whole file: these appends race each other inside one business transaction.
   const correlationId = createCorrelationId(crypto.randomUUID());
@@ -73,9 +102,12 @@ describe('the Postgres event store under genuine contention', () => {
     schemaVersion: 1,
     streamId,
     payload,
-    occurredAt: '2024-01-01T00:00:00.000Z',
-    actor: { kind: 'test', id: 'contention' },
-    correlationId,
+    context: {
+      occurred_at: '2024-01-01T00:00:00.000Z',
+      actor_id: 'contention',
+      correlation_id: correlationId,
+      causation_id: null,
+    },
   });
 
   /**

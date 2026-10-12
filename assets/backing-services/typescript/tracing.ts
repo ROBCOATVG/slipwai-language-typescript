@@ -117,8 +117,8 @@ export function startTracing(config: TracingConfig, logger: TracingLogger): Trac
  * The trace and span currently in scope, as the ids an event carries — or nothing outside a span.
  *
  * ── Why this exists ───────────────────────────────────────────────────────────────────────────────────
- * Where this project records events, the port has required a `correlationId` and an optional
- * `causationId` on every one of them from the first line — and until there was a trace to take them from,
+ * Where this project records events, the port requires a `context.correlation_id` and an explicit UUID-or-null
+ * `context.causation_id` on every one of them from the first line — and until there was a trace to take them from,
  * every slice had to invent both. Inventing them is how a causal tree ends up with everything appearing to have caused
  * itself. The request already has an identity — the span the transport opened for it, continuing whatever
  * `traceparent` the caller sent — so that is what the events it produces are correlated by, and a trace
@@ -133,11 +133,11 @@ export function startTracing(config: TracingConfig, logger: TracingLogger): Trac
  * ── How a slice uses it ───────────────────────────────────────────────────────────────────────────────
  * ```ts
  * const { correlationId, causationId } = traceIds();
- * const event: DomainEvent = {
- *   type: 'OrderPlaced', schemaVersion: 1, streamId, payload, occurredAt, actor,
- *   correlationId: createCorrelationId(correlationId ?? randomUUID()),
- *   ...(causationId === undefined ? {} : { causationId: createCausationId(causationId) }),
- * };
+ * const context = createEventContext({ actor_id, occurred_at,
+ *   correlation_id: createCorrelationId(correlationId ?? randomUUID()),
+ *   causation_id: causationId === undefined ? null : createCausationId(causationId),
+ * });
+ * const event = raise(context, { type: 'OrderPlaced', schemaVersion: 1, streamId, payload });
  * ```
  * `createCorrelationId` still parses them, because the branded types exist to be checked once at the edge
  * and this is an edge like any other.

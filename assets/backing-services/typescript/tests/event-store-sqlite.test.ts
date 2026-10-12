@@ -72,9 +72,12 @@ describe('the SQLite event store, as a durable file', () => {
     schemaVersion: 1 as const,
     streamId,
     payload: { step: type },
-    occurredAt: '2024-01-01T00:00:00.000Z',
-    actor: { kind: 'test', id: 'durability' },
-    correlationId,
+    context: {
+      occurred_at: '2024-01-01T00:00:00.000Z',
+      actor_id: 'durability',
+      correlation_id: correlationId,
+      causation_id: null,
+    },
   });
 
   it('keeps the log across a close and reopen, which is the whole reason to choose it', async () => {
