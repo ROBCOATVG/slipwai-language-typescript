@@ -51,3 +51,41 @@ jobs:
     # needs no credential and a package nobody owns can still be proved.
     secrets:
       chandlery_token: ${{ secrets.CHANDLERY_TOKEN }}
+
+  state-contract:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: contract
+          POSTGRES_DB: contracts
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: packages/typescript
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: actions/checkout@v6
+        with:
+          repository: ROBCOATVG/slipwai_v2_Fork
+          path: keel
+      - name: Install keel and declare the target packages this language offers
+        run: |
+          python -m pip install ./keel
+          ln -s "$GITHUB_WORKSPACE/keel/packages/aws" packages/aws
+          ln -s "$GITHUB_WORKSPACE/keel/packages/azure" packages/azure
+      - name: Generate both rungs and prove native gates plus independent PostgreSQL contenders
+        env:
+          SLIPWAI_STATE_NATIVE: '1'
+          SLIPWAI_LANGUAGES: ${{ github.workspace }}/packages
+          DATABASE_URL: postgres://postgres:contract@localhost:5432/contracts
+        run: python -m unittest discover -s packages/typescript/tests -p test_state_skeleton.py -v

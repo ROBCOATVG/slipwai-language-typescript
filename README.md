@@ -20,3 +20,27 @@ Because this family answers the member first in slipwai's order, a browser app i
 `shared_code` paragraph and its `formatter` line are this family's. slipwai's side of the same contract is
 `contracts/npm-workspace.md` in its repository; `tests/test_typescript_workspace.py` holds this side to naming only
 files this package has.
+
+## Service write model and event context
+
+This binding requires the keel's phase 15.6 service-write-model protocol (catalog schema 9). Existing
+package and product version pins stay unchanged until release. `--write-model state` selects a
+versioned repository and memory, SQLite or PostgreSQL adapter. A missing row is `NO_STATE`; `save`
+returns a version conflict as a value. PostgreSQL updates compare and increment the version in one
+statement. `--write-model events` retains the event store, projections and replay contract.
+
+Both rungs require `EventContext` when raising or appending a fact: `actor_id`, `occurred_at`, branded
+`correlation_id`, and branded `causation_id` or explicit `null` for the first cause. Delegation uses
+`delegatedContext` and requires `on_behalf_of`. Attribution identifies who acted; it grants no resource
+ownership. Business payloads refer to sensitive data by id. Store metadata stays separate.
+
+Constructing an event with the former flat actor/time fields is intentionally rejected by the compiler.
+The event-store API and committed version/position fields retain their shape; SQL reads derive context
+from already recorded actor and causal fields, with no invented historical events. The state example's
+`saveAndRaise` publishes new facts only after a successful save; it is an in-process example, not a
+durable outbox. A publisher failure needs an application-specific recovery policy before production.
+
+`SLIPWAI_STATE_NATIVE=1 DATABASE_URL=... python -m unittest discover -s tests -p test_state_skeleton.py -v`
+generates both rungs with all three adapters, runs their real gates and the PostgreSQL contracts. The
+`state-contract` PR job runs the same proof against PostgreSQL 17, including two independent pools
+racing an insert and a same-version update. Ordinary conformance needs no database or Node toolchain.

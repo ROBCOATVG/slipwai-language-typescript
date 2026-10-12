@@ -16,7 +16,7 @@ from slipwai.selection import Selection
 from slipwai.services import App
 from slipwai.tooling import package_name
 
-from . import typescript_deploy, typescript_layout, typescript_project, typescript_prune_rows, typescript_toolchain
+from . import typescript_deploy, typescript_layout, typescript_project, typescript_prune_rows, typescript_state, typescript_toolchain
 from .typescript_workspace import WORKSPACE_ANSWER, service_lock
 
 # This package's own assets, laid out as core's: `languages/typescript/…` and `backing-services/typescript/…`.
@@ -41,7 +41,10 @@ def service_files(event: bool, selection: Selection, target: str = "none") -> di
     wire_entry(files, target, "typescript")
     # And the store's half: which adapter this project opens, and what `/ready` is handed. See
     # `composition.py` — the entry point is the only place that may name the answer.
-    wire_store(files, selection, "typescript")
+    if selection.write_model == "state":
+        typescript_state.state_files(files, selection)
+    else:
+        wire_store(files, selection, "typescript")
     # The published contract, committed beside the service: which of the two shapes it takes is the same
     # condition that decides whether `/api/flags` is a route at all.
     files.update(published_document(selection, target, "typescript"))
@@ -156,7 +159,7 @@ PACKAGE_ADDITIONS: dict[str, dict[str, dict[str, str]]] = {
             "@opentelemetry/sdk-trace-node": "2.11.0",
             "@opentelemetry/semantic-conventions": "1.43.0",
             "@sinclair/typebox": "0.34.52",
-            "fastify": "5.7.1",
+            "fastify": "5.12.5",
         },
         "devDependencies": {},
         # `--noEmit false --rootDir .` overrides the typecheck-only tsconfig for this one command: TypeScript

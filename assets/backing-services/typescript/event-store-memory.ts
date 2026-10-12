@@ -1,3 +1,4 @@
+import { assertEventContext, createEventContext } from '../../application/ports/event-context.js';
 import type {
   AppendResult,
   CommittedEvent,
@@ -105,6 +106,7 @@ export function createInMemoryEventStore(
     const globalPosition = database.head() + 1;
     database.log.push({
       ...event,
+      context: createEventContext(event.context),
       streamId,
       version,
       globalPosition,
@@ -155,6 +157,7 @@ export function createInMemoryEventStore(
       expectedVersion: number,
       events: readonly DomainEvent[],
     ): Promise<AppendResult> => {
+      for (const event of events) assertEventContext(event.context);
       const actualVersion = versionOf(streamId);
       if (actualVersion !== expectedVersion) return versionConflict(actualVersion);
 
@@ -182,6 +185,7 @@ export function createInMemoryEventStore(
       condition: Condition,
       events: readonly DomainEvent[],
     ): Promise<ConditionalAppendResult> => {
+      for (const event of events) assertEventContext(event.context);
       const matching = await readTagged(condition.query, condition.after);
       if (matching.events.length > 0) return conditionConflict(database.head());
 

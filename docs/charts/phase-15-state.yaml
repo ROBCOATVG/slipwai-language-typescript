@@ -1,0 +1,48 @@
+feature: phase-15-state
+fairways:
+  phase-15-event-modelling:
+    owns:
+      - slipwai_language_typescript/typescript.py
+      - slipwai_language_typescript/typescript_layout.py
+      - slipwai_language_typescript/typescript_state.py
+      - slipwai_language_typescript/typescript_project.py
+      - slipwai_language_typescript/typescript_prune_rows.py
+      - slipwai_language_typescript/typescript_toolchain.py
+      - README.md
+      - language.json
+      - assets/languages/typescript/locks/**
+      - assets/languages/typescript/workspace-locks/**
+      - assets/backing-services/typescript/**
+      - tests/test_state_skeleton.py
+      - tests/test_typescript_workspace.py
+      - .github/workflows/verify.yml
+      - docs/charts/phase-15-state.yaml
+slices:
+  '15.8':
+    fairway: phase-15-event-modelling
+    sets: [VersionedStateRepository, MandatoryEventContext]
+    steers_by: [ServiceWriteModelSelection, ExistingEventStorePort]
+marks:
+  VersionedStateRepository:
+    kind: port
+    inputs: {id: string, expectedVersion: integer, state: json-object}
+    outputs: {outcome: saved-or-version-conflict, actualVersion: integer}
+  MandatoryEventContext:
+    kind: schema
+    schema:
+      type: object
+      required: [actor_id, occurred_at, correlation_id, causation_id]
+      properties:
+        actor_id: {type: string}
+        on_behalf_of: {type: string}
+        occurred_at: {type: string, format: date-time}
+        correlation_id: {type: string, format: uuid}
+        causation_id: {type: [string, 'null']}
+  ServiceWriteModelSelection:
+    kind: port
+    inputs: {selection: write-model-state-or-events}
+    outputs: {layout: rung-specific-write-and-read-files}
+  ExistingEventStorePort:
+    kind: port
+    inputs: {streamId: string, expectedVersion: integer, events: array}
+    outputs: {outcome: appended-or-version-conflict}

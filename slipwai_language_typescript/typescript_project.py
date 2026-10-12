@@ -29,6 +29,7 @@ ANSWERS: dict[protocol.Member[Any], object] = {
     ),
     protocol.EVENT_MODEL_PATHS: lambda project_name, service: {
         "events": f"{service}/src/domain/<context>/events.ts",
+        "repository": f"{service}/src/application/ports/repository.ts",
         "domain": f"{service}/src/domain/<context>/decider.ts",
         "usecase": f"{service}/src/application/<context>/<use-case>.ts",
         "test": f"{service}/tests/<slice>.test.ts (Vitest)",

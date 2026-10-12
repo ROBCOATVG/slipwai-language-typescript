@@ -8,23 +8,21 @@ from __future__ import annotations
 
 import itertools
 import unittest
-
-import checkout_languages
+from pathlib import Path
 
 from slipwai.project.biome import biome_version
 from slipwai.project.frontend import WEB_LOCK_FEATURES, web_lock_suffix
 from slipwai.registry import NPM_WORKSPACE, registry
 from slipwai.selection import Selection
 
-ROOT = checkout_languages.package_roots()[0].parent / "typescript"
-AXES = {"fastify": ("http", "fastify"), "postgres": ("event-store", "postgres")}
+ROOT = Path(__file__).resolve().parents[1]
+AXES = {"fastify": ("http", "fastify"), "postgres": ("persistence", "postgres")}
 
 
 def selections() -> list[Selection]:
-    workspace = checkout_languages.package("typescript").typescript_workspace
     chosen = [dict(AXES[feature] for feature in subset)
-              for size in range(len(workspace.LOCK_FEATURES) + 1)
-              for subset in itertools.combinations(workspace.LOCK_FEATURES, size)]
+              for size in range(len(AXES) + 1)
+              for subset in itertools.combinations(AXES, size)]
     return [Selection(axes) for axes in chosen]
 
 

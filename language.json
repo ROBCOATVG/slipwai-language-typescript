@@ -5,7 +5,7 @@
   "family": "typescript",
   "backends": {
     "typescript": {
-      "label": "TypeScript — Node and npm workspaces, ESLint, `tsc`, Vitest",
+      "label": "TypeScript \u2014 Node and npm workspaces, ESLint, `tsc`, Vitest",
       "targets": [
         "none",
         "existing",
@@ -13,11 +13,6 @@
         "azure"
       ],
       "options": {
-        "event-store": [
-          "memory",
-          "sqlite",
-          "postgres"
-        ],
         "http": [
           "none",
           "fastify"
@@ -34,6 +29,15 @@
           "keycloak",
           "cognito",
           "auth0"
+        ],
+        "persistence": [
+          "memory",
+          "sqlite",
+          "postgres"
+        ],
+        "write-model": [
+          "events",
+          "state"
         ]
       },
       "defaults": {
@@ -44,7 +48,7 @@
   "axes": {
     "http": {
       "fastify": {
-        "label": "Fastify — JSON API, schema-parsed at the edge",
+        "label": "Fastify \u2014 JSON API, schema-parsed at the edge",
         "capabilities": [
           "http-fastify"
         ],
