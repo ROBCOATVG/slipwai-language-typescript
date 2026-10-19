@@ -27,5 +27,5 @@ class Matrix(matrix.MatrixCase):
         for frontend in ("none", "react-vite"):
             with self.subTest(frontend=frontend):
                 repo = self.generate(f"verify-services-{frontend}", "event-modelling", "typescript", frontend,
-                                     event_store="postgres", http="fastify", auth="keycloak", users="keycloak")
+                                     persistence="postgres", http="fastify", auth="keycloak", users="keycloak")
                 self.verify(repo)
