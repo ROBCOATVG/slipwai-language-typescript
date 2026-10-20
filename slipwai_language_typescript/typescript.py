@@ -105,9 +105,15 @@ def vitest_config(selection: Selection) -> str:
 """
     return f"""import {{ defineConfig }} from 'vitest/config';
 
+// A session slipwai's captain started is told its share of this machine's cores, because several slices
+// testing at once would otherwise each start a worker per core. Unset, as in a person's own run, the
+// default stands.
+const workers = Number.parseInt(process.env.SLIPWAI_TEST_WORKERS ?? '', 10);
+
 export default defineConfig({{
   test: {{
     include: ['tests/**/*.test.ts'],
+    ...(workers > 0 ? {{ maxWorkers: workers }} : {{}}),
 {exclusion}  }},
 }});
 """
