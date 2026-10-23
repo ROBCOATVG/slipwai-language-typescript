@@ -5,6 +5,7 @@ package's state-contract CI job on every PR. No installed npm toolchain is requi
 """
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -43,6 +44,21 @@ class StateSkeletonTest(unittest.TestCase):
                 if persistence == "postgres":
                     self.assertTrue((service / "migrations/001_states.js").is_file())
                     self.assertFalse((service / "migrations/001_events.js").exists())
+
+    def test_the_durable_store_brings_the_seed_door_and_the_memory_store_does_not(self) -> None:
+        """A slice's `try-it.json` may give the events its unbuilt upstream would have written; they go in
+        through the service's own store, by a process with the store's credentials, never a route."""
+        service = self.generated("events", "postgres", http="fastify") / "apps/service"
+        self.assertTrue((service / "scripts/seed.ts").is_file())
+        package = json.loads((service / "package.json").read_text(encoding="utf-8"))
+        self.assertIn("seed", package["scripts"])
+        self.assertIn('"scripts/**/*.ts"', (service / "tsconfig.json").read_text(encoding="utf-8"))
+        makefile = (service.parent.parent / "Makefile").read_text(encoding="utf-8")
+        self.assertIn("seed-service:", makefile)
+        self.assertIn("run seed -- $(FILE)", makefile)
+        bare = self.generated("events", "memory") / "apps/service"
+        self.assertFalse((bare / "scripts/seed.ts").exists())
+        self.assertNotIn("seed-service:", (bare.parent.parent / "Makefile").read_text(encoding="utf-8"))
 
     def test_standard_has_a_memory_state_baseline(self) -> None:
         service = self.generated("state", "memory", "standard") / "apps/service"

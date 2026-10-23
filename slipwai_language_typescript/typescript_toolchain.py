@@ -19,6 +19,8 @@ TOOLING: Tooling = {
     # dependency target as a prerequisite instead (`project/shared_packages.npm_dependency`).
     "install": "npm ci",
     "migrate": f"npm --workspace {APP} run migrate",
+    # The seed door: the Makefile's `seed-<service> FILE=<json>` target hands the file through.
+    "seed": f"npm --workspace {APP} run seed -- $(FILE)",
     "integration": f"npm --workspace {APP} run test:integration",
     "ci_image": f"node:{NODE_MAJOR}-bookworm",
     "ci_install": "npm ci",

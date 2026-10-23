@@ -37,6 +37,10 @@ WRITE_SIDE: dict[str, dict[str, Any]] = {
         "vitest.integration.config.ts": "vitest.integration.config.ts",
         "migrations/001_events.js": "migrations/001_events.js",
         "migrations/002_events_append_only.js": "migrations/002_events_append_only.js",
+        # The seed door: `make seed-<service> FILE=<json>` appends the events a slice's `try-it.json`
+        # gives, through this store, with a deterministic identity so a replay records nothing twice.
+        # Under the durable store because it needs one (slipwai's feedback-points plan, D4).
+        "scripts/seed.ts": "seed.ts",
     },
     "fastify": {
         "src/adapters/driving/http/app.ts": "http-app.ts",

@@ -84,7 +84,7 @@ def typescript_config(selection: Selection) -> str:
     "noEmit": true,
 {escape}    "types": ["node", "vitest/globals"]
   }},
-  "include": ["src/**/*.ts", "tests/**/*.ts"]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"]
 }}
 """
 
@@ -136,6 +136,8 @@ PACKAGE_ADDITIONS: dict[str, dict[str, dict[str, str]]] = {
             "migrate": "node-pg-migrate up -m migrations",
             "migrate:down": "node-pg-migrate down -m migrations",
             "test:integration": "vitest run --config vitest.integration.config.ts",
+            # The seed door, compiled the way `dev` is: `make seed-<service> FILE=<json>` runs it.
+            "seed": "tsc --noEmit false --outDir .build --rootDir . && node .build/scripts/seed.js",
         },
     },
     "fastify": {

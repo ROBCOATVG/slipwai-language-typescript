@@ -31,6 +31,7 @@ PRUNE_ROWS = {
             "tests/integration/event-store-postgres.test.ts",
             "tests/integration/checkpoint-store-postgres.test.ts",
             "vitest.integration.config.ts",
+            "scripts/seed.ts",
         ),
         "fastify": (
             "src/adapters/driving/http/app.ts",
@@ -50,7 +51,7 @@ PRUNE_ROWS = {
     "package_edits": {
         "postgres": {
             "packages": ("pg", "@types/pg", "node-pg-migrate"),
-            "scripts": ("migrate", "migrate:down", "test:integration"),
+            "scripts": ("migrate", "migrate:down", "test:integration", "seed"),
         },
         # The transport and the schema library it declares its routes and its environment with: they arrive
         # together and they go together, because nothing else in the service imports either.
