@@ -3,6 +3,34 @@
 No releases yet. Release notes are recorded here newest first, one entry per released version; the entry being
 written is `changelog.d/`.
 
+## 1.2.0 — MINOR
+
+**A slice's story may be given its inputs, through the service's own seed door.** A service on the durable
+store gains `scripts/seed.ts`, run by `make seed-<service> FILE=<json>`: it appends the events a slice's
+`try-it.json` *gives* — the ones an unbuilt upstream slice would have written — through the event-store port,
+at the stream's current version, as a system actor, with an identity hashed from stream, type and data so a
+replay records nothing twice. With no `DATABASE_URL` it says so and exits 2. Never an HTTP route: the door
+is a process with the store's credentials. slipwai's Try it runs it before a story's first step, and the
+Demo rung's seed check runs it in the berth.
+
+**Catch-up:** `slipwai language upgrade typescript`, then `slipwai migrate`; the service gains the script,
+the `seed` npm script and the Makefile target. Until then a story's `given` is validated by `check-try` and
+not applied, and Try it says *no seed door yet*.
+
+**The service's test suite runs on its share of the machine's cores when slipwai's captain started the session.** Vitest starts a worker per core whatever else is running, so three slices testing at once on one machine asked for three machines: hr-test-2 at three berths on eighteen cores sat at a load of eighty, and a 20-second `make unit-service` took 280. `vitest.config.ts` now reads `SLIPWAI_TEST_WORKERS`, which the captain sets for every session it starts, into `maxWorkers`. Unset, as in a person's own run, vitest's default stands.
+
+**The `react-vite` browser app ships in this package, because slipwai's keel no longer carries one.** Its files
+moved from the keel's `assets/frontends/react-vite/` to this package's, beside the locks that already resolved
+them, and `language.json` declares it in a `frontends` block — its label, capabilities, what each feature adds,
+owns and depends on, the files carrying a marked region, and its styled baseline — which slipwai reads, and a
+generated project's pruner reads too. Each variant tree is laid out like the app and every file carries the
+same tokens, so a second frontend is a different tree rather than a change to the keel. A project generated
+with it is byte for byte the project the keel generated before, apart from the pruner's own tables. CI also runs
+conformance every night against the keel's `main`, so a keel change that breaks this package shows here first.
+
+**Catch-up:** `slipwai language upgrade typescript` beside a keel with phase 17, then `slipwai migrate`; a
+project's browser app is unchanged, and its `scripts/backing-services.py` gains the frontend's rows.
+
 ## 1.1.0 — MINOR
 
 **A state-stored TypeScript service is generated whole.** A service on the `state` rung (`write-model: state`)
