@@ -3,6 +3,25 @@
 No releases yet. Release notes are recorded here newest first, one entry per released version; the entry being
 written is `changelog.d/`.
 
+## 1.2.1 — PATCH
+
+**Every committed lock passes `npm audit`, so a generated project's gate does again.** `vitest` moves to 4.1.12,
+`fastify` to 5.12.7 and the browser app's `vite` to 8.3.5, each past this week's advisories, and the typed
+client's `openapi-typescript` to 7.13.0 — 6 reached `braces`, every version of which now has an advisory, and 7
+does not depend on it. The generator calls the TypeScript compiler's JavaScript API, which the workspace's
+TypeScript 7 does not have, so `packages/api-client` carries a TypeScript 5 of its own, nested beside it.
+`scripts/regenerate-locks.py`, which the locks' comments always named, now exists: it moves every lock to the
+pins and refuses to write one an audit still finds fault with.
+
+**A browser app beside a service with no API passes its own gate.** With `--http none` the marked region took
+the app's only route, leaving `Route` imported and unused and `Routes` empty, a blank line the formatter
+refused in its test, and `vite.config.ts` using a `workers` it had cut the declaration of — so `make verify`
+failed on lint, then format, then the type check. The shell now always has a catch-all route, the test's blank
+line sits inside the region, and `workers` is declared outside it.
+
+**Catch-up:** `slipwai language upgrade typescript`, then `slipwai migrate`; a project's locks and manifests
+take the new pins, and `npm ci` installs them.
+
 ## 1.2.0 — MINOR
 
 **A slice's story may be given its inputs, through the service's own seed door.** A service on the durable

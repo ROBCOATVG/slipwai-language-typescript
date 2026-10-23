@@ -1,6 +1,11 @@
 import react from '@vitejs/plugin-react';
 import { configDefaults, defineConfig } from 'vitest/config';
 
+// A session slipwai's captain started is told its share of this machine's cores, because several slices
+// testing at once would otherwise each start a worker per core. Unset, as in a person's own run, the
+// default stands.
+const workers = Number.parseInt(process.env.SLIPWAI_TEST_WORKERS ?? '', 10);
+
 // backing-service:__TRANSPORT__:begin
 /**
  * Where `/api` goes while you are developing.
@@ -17,11 +22,6 @@ import { configDefaults, defineConfig } from 'vitest/config';
  * Compose network (`make demo`), where `localhost` is the web container itself.
  */
 const apiOrigin = process.env.API_ORIGIN ?? 'http://localhost:__API_PORT__';
-
-// A session slipwai's captain started is told its share of this machine's cores, because several slices
-// testing at once would otherwise each start a worker per core. Unset, as in a person's own run, the
-// default stands.
-const workers = Number.parseInt(process.env.SLIPWAI_TEST_WORKERS ?? '', 10);
 
 // backing-service:__TRANSPORT__:end
 export default defineConfig({

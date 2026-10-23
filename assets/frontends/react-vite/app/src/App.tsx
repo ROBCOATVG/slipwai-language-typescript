@@ -74,6 +74,16 @@ export function App() {
                 no API to show. */}
             <Route path="/" element={<Home />} />
             {/* backing-service:__TRANSPORT__:end */}
+            {/* Every other address, and every address in a project with no API to show yet: a route the
+                shell always has, so `Routes` is never empty and a mistyped link says so. */}
+            <Route
+              path="*"
+              element={
+                <p role="status" className="muted">
+                  Nothing is here yet.
+                </p>
+              }
+            />
           </Routes>
         ) : (
           <p role="status" className="muted">

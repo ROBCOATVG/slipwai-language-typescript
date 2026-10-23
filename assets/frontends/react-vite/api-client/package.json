@@ -12,6 +12,7 @@
     "build": "openapi-typescript __DOCUMENT__ --output src/schema.ts"
   },
   "devDependencies": {
-    "openapi-typescript": "6.7.6"
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
   }
 }

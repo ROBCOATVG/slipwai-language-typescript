@@ -168,7 +168,7 @@ PACKAGE_ADDITIONS: dict[str, dict[str, dict[str, str]]] = {
             "@opentelemetry/sdk-trace-node": "2.11.0",
             "@opentelemetry/semantic-conventions": "1.43.0",
             "@sinclair/typebox": "0.34.52",
-            "fastify": "5.12.5",
+            "fastify": "5.12.7",
         },
         "devDependencies": {},
         # `--noEmit false --rootDir .` overrides the typecheck-only tsconfig for this one command: TypeScript
