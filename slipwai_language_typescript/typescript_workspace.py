@@ -1,7 +1,7 @@
 """What the TypeScript family tells core about the npm workspace: its `npm_workspace` answer.
 
 A TypeScript service is an npm package, so it is a member of the project's one workspace beside every browser app.
-Core's `react-vite` frontend owns the workspace's root and the browser app; this answers the rest
+This family ships the browser app too (`typescript_frontends`); this answers the workspace's half
 (`contracts/npm-workspace.md`): each service's committed lock, the workspace lock for a TypeScript service beside
 browser apps, the image a browser app's dev server runs in, and Biome, the lint and format gate every package in
 the workspace shares.

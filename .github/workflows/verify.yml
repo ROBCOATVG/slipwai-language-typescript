@@ -8,6 +8,10 @@ on:
     # chose. `git tag v1.1.0 && git push --follow-tags` is the whole of releasing.
     tags: ['v*']
   pull_request:
+  # Every night, against the keel's `main` (`contract-main` below), whether or not this package changed: the
+  # keel moves without telling anybody, and this is how the package hears that it did.
+  schedule:
+    - cron: '23 4 * * *'
   # The matrix is opt-in because it builds images and starts containers, and this is how it is opted
   # into. Without the input there was no way to ask for it at all: the reusable workflow took it and
   # nothing passed it, so the opt-in could not be opted into.
@@ -55,6 +59,20 @@ jobs:
     # needs no credential and a package nobody owns can still be proved.
     secrets:
       chandlery_token: ${{ secrets.CHANDLERY_TOKEN }}
+
+  # **The contract test, from this side of it.** The job above proves the package against the keel it was
+  # released with; this one proves it against the keel's `main`, which is where a change that breaks the
+  # protocol would land first. Conformance only — the matrix and publishing stay with the pinned keel — so a
+  # red run here with no change of this package's own is the keel breaking its promise, said the next
+  # morning rather than in somebody's generation (`docs/backend-protocol.md`, *Compatibility*, in the keel).
+  contract-main:
+    uses: ROBCOATVG/slipwai/.github/workflows/package.yml@main
+    with:
+      package: typescript
+      kind: language
+      matrix: false
+      channel: ''
+      keel: 'git+https://github.com/ROBCOATVG/slipwai@main'
 
   state-contract:
     runs-on: ubuntu-latest

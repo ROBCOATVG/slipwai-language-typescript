@@ -17,6 +17,7 @@ from slipwai.services import App
 from slipwai.tooling import package_name
 
 from . import typescript_deploy, typescript_layout, typescript_project, typescript_prune_rows, typescript_state, typescript_toolchain
+from .typescript_frontends import BROWSER_APPS
 from .typescript_workspace import WORKSPACE_ANSWER, service_lock
 
 # This package's own assets, laid out as core's: `languages/typescript/…` and `backing-services/typescript/…`.
@@ -287,7 +288,7 @@ if [ ! -d node_modules ]; then npm ci; fi
 
 
 LANGUAGE = protocol.Language(
-    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS | typescript_project.FAMILY_ANSWERS | {protocol.PRUNE_ROWS: typescript_prune_rows.PRUNE_ROWS, protocol.NPM_WORKSPACE: WORKSPACE_ANSWER}),),
+    (protocol.Family("typescript", typescript_toolchain.FAMILY | typescript_deploy.FAMILY | typescript_layout.FAMILY_ANSWERS | typescript_project.FAMILY_ANSWERS | {protocol.PRUNE_ROWS: typescript_prune_rows.PRUNE_ROWS, protocol.NPM_WORKSPACE: WORKSPACE_ANSWER, protocol.BROWSER_APPS: BROWSER_APPS}),),
     (protocol.Backend("typescript", "typescript", typescript_toolchain.BACKEND | typescript_deploy.BACKEND | {
         protocol.SERVICE_FILES: service_files,
         protocol.NAME_SERVICE: name_service,

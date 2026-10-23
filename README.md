@@ -1,12 +1,18 @@
 # slipwai-language-typescript
 slipwai 2.0 language addon: slipwai-language-typescript
 
-## The npm workspace: this package's side
+## The npm workspace and the browser app: this package's side
 
-A TypeScript service is an npm package, so it shares the project's one npm workspace with slipwai's `react-vite`
-browser app. slipwai's core owns the browser app and the workspace's root (its `package.json`, its build script, the
-`frontend-only` lock of a project with no TypeScript service); this package joins the workspace by answering the
-family-level protocol member `npm_workspace` with an `NpmWorkspace` (`slipwai_language_typescript/typescript_workspace.py`):
+A TypeScript service is an npm package, and so is a browser app, so both share the project's one npm workspace —
+and this package ships both halves. slipwai's keel ships no frontend: the `react-vite` browser app lives here,
+under `assets/frontends/react-vite/`, beside the services' `assets/languages/typescript/`, because this package
+already commits the locks that resolve it and pins the Biome it is linted with. `language.json`'s `frontends`
+block declares it — its label, capabilities, the files each feature adds, owns and depends on, its styled
+baseline — and `slipwai_language_typescript/typescript_frontends.py` answers `browser_apps` with its directory.
+The layout under it, and every field, are slipwai's `docs/frontend-protocol.md`.
+
+The family joins the workspace by answering the family-level protocol member `npm_workspace` with an
+`NpmWorkspace` (`slipwai_language_typescript/typescript_workspace.py`):
 
 | Field | What this package promises |
 |---|---|

@@ -74,5 +74,49 @@
         ]
       }
     }
+  },
+  "frontends": {
+    "react-vite": {
+      "label": "React and Vite \u2014 a TypeScript browser app, Biome, Vitest and Testing Library",
+      "stack": "TypeScript/React/Vite",
+      "gate": "Biome, TypeScript and React component tests",
+      "capabilities": [
+        "frontend",
+        "typescript",
+        "react",
+        "vite"
+      ],
+      "marked": [
+        "vite.config.ts",
+        "src/main.tsx",
+        "src/App.tsx",
+        "tests/App.test.tsx"
+      ],
+      "features": {
+        "users-keycloak": {
+          "files": "features/users-keycloak",
+          "owned": [
+            "src/auth",
+            "tests/auth"
+          ],
+          "dependencies": {
+            "oidc-client-ts": "3.5.0",
+            "react-oidc-context": "3.3.1"
+          },
+          "where": "`src/auth/users.tsx`, react-oidc-context over oidc-client-ts"
+        }
+      },
+      "design": {
+        "tokens": "src/styles/tokens.css",
+        "base": "src/styles/base.css",
+        "shell": "src/App.tsx",
+        "entry": "src/main.tsx",
+        "imports": [
+          "import './styles/tokens.css';\n",
+          "import './styles/base.css';\n"
+        ],
+        "route": "src/routes/Home.tsx"
+      }
+    }
   }
 }
