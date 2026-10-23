@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   conformance:
-    uses: ROBCOATVG/slipwai/.github/workflows/package.yml@b0ac7885b1dddfb002d554b377db3152e7ca08a2
+    uses: ROBCOATVG/slipwai/.github/workflows/package.yml@ac040489769deacd88a21fe33e996fd3ee100eef
     with:
       package: typescript
       kind: language
@@ -49,11 +49,10 @@ jobs:
       channel: 'ROBCOATVG/slipwai-index'
       # Which keel to prove against: a bare version is one on PyPI, anything else is passed to pip as it
       # stands. Empty installs `slipwai`, which is right once the version you need is published.
-      keel: 'git+https://github.com/ROBCOATVG/slipwai@b0ac7885b1dddfb002d554b377db3152e7ca08a2'
-      # These target packages have no chandlery release yet; prove exactly this source topology.
-      beside_source_repository: ROBCOATVG/slipwai_v2_Fork
-      beside_source_ref: '75c053a86817bd12676948f0344f94c451145b62'
-      beside_source_packages: 'aws azure'
+      keel: 'git+https://github.com/ROBCOATVG/slipwai@ac040489769deacd88a21fe33e996fd3ee100eef'
+      # The clouds this package deploys to, installed beside it from the chandlery as any sibling is, so
+      # conformance and the matrix prove it against the target packages a person would install.
+      beside: 'aws azure'
     # A token that may open a pull request on that channel. Without it a tag still builds the release
     # and attaches it to itself, and `slipwai package register` finishes the job by hand — so a fork
     # needs no credential and a package nobody owns can still be proved.
@@ -99,7 +98,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: ROBCOATVG/slipwai
-          ref: 'b0ac7885b1dddfb002d554b377db3152e7ca08a2'
+          ref: 'ac040489769deacd88a21fe33e996fd3ee100eef'
           path: keel
           # The target packages are submodules of the keel's repository, and the state contract generates
           # beside them.
@@ -107,7 +106,7 @@ jobs:
       - name: Install the exact tested keel and expose its declared target source
         env:
           PACKAGE_SOURCES_REPOSITORY: ROBCOATVG/slipwai
-          PACKAGE_SOURCES_REF: 'b0ac7885b1dddfb002d554b377db3152e7ca08a2'
+          PACKAGE_SOURCES_REF: 'ac040489769deacd88a21fe33e996fd3ee100eef'
           PACKAGE_SOURCES_NAMES: 'aws azure'
           PACKAGE_UNDER_TEST: typescript
         run: |
