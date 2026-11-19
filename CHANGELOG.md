@@ -3,6 +3,10 @@
 No releases yet. Release notes are recorded here newest first, one entry per released version; the entry being
 written is `changelog.d/`.
 
+## 1.2.2 — PATCH
+
+**CI proves this package against slipwai itself.** Its workflow installed the keel, called the shared release workflow and took the cloud target sources from `ROBCOATVG/slipwai`, a fork archived on 2026-10-17 and 244 commits behind `ROBCOATVG/slipwai`. All of them now come from `ROBCOATVG/slipwai`; where a commit is pinned, it is the same commit, which both repositories hold. Nothing the package does in a project changes.
+
 ## 1.2.1 — PATCH
 
 **Every committed lock passes `npm audit`, so a generated project's gate does again.** `vitest` moves to 4.1.12,
