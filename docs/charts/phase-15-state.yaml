@@ -50,4 +50,4 @@ marks:
     kind: port
     inputs: {repository: public-github-slug, ref: full-commit-sha, packages: validated-package-names}
     outputs: {siblings: contained-source-packages, provenance: tested-source-commit}
-    source: ROBCOATVG/slipwai_v2_Fork@75c053a86817bd12676948f0344f94c451145b62
+    source: ROBCOATVG/slipwai@75c053a86817bd12676948f0344f94c451145b62
