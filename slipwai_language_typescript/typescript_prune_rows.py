@@ -32,6 +32,8 @@ PRUNE_ROWS = {
             "tests/integration/checkpoint-store-postgres.test.ts",
             "vitest.integration.config.ts",
             "scripts/seed.ts",
+            "scripts/seed-door.ts",
+            "tests/seed/seed-door.test.ts",
         ),
         "fastify": (
             "src/adapters/driving/http/app.ts",
