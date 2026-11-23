@@ -50,6 +50,9 @@ class StateSkeletonTest(unittest.TestCase):
         through the service's own store, by a process with the store's credentials, never a route."""
         service = self.generated("events", "postgres", http="fastify") / "apps/service"
         self.assertTrue((service / "scripts/seed.ts").is_file())
+        # The door's logic and its suite beside it: a given's sealed fields go through the project's hook.
+        self.assertTrue((service / "scripts/seed-door.ts").is_file())
+        self.assertIn("seedGiven", (service / "tests/seed/seed-door.test.ts").read_text(encoding="utf-8"))
         package = json.loads((service / "package.json").read_text(encoding="utf-8"))
         self.assertIn("seed", package["scripts"])
         self.assertIn('"scripts/**/*.ts"', (service / "tsconfig.json").read_text(encoding="utf-8"))
@@ -58,6 +61,7 @@ class StateSkeletonTest(unittest.TestCase):
         self.assertIn("run seed -- $(FILE)", makefile)
         bare = self.generated("events", "memory") / "apps/service"
         self.assertFalse((bare / "scripts/seed.ts").exists())
+        self.assertFalse((bare / "tests/seed/seed-door.test.ts").exists())
         self.assertNotIn("seed-service:", (bare.parent.parent / "Makefile").read_text(encoding="utf-8"))
 
     def test_standard_has_a_memory_state_baseline(self) -> None:

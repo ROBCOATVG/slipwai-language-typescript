@@ -41,6 +41,10 @@ WRITE_SIDE: dict[str, dict[str, Any]] = {
         # gives, through this store, with a deterministic identity so a replay records nothing twice.
         # Under the durable store because it needs one (slipwai's feedback-points plan, D4).
         "scripts/seed.ts": "seed.ts",
+        # What the door does, apart from the process: idempotence and a given's sealed fields, which the
+        # project's own `scripts/seed-seal.ts` seals (slipwai#154). Proven on the in-memory store.
+        "scripts/seed-door.ts": "seed-door.ts",
+        "tests/seed/seed-door.test.ts": "tests/seed-door.test.ts",
     },
     "fastify": {
         "src/adapters/driving/http/app.ts": "http-app.ts",
